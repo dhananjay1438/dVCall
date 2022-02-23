@@ -1,44 +1,33 @@
 package com.example.videocallingapp
-// Kotlin
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import android.Manifest
 import android.content.pm.PackageManager
-import android.view.SurfaceView
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
-// Kotlin
 import io.agora.rtc.IRtcEngineEventHandler
 import io.agora.rtc.RtcEngine
 import io.agora.rtc.video.VideoCanvas
 import java.lang.Exception
-import java.lang.RuntimeException
 
 
 class MainActivity : AppCompatActivity() {
-    // Kotlin
-    // Fill the App ID of your project generated on Agora Console.
     private val APP_ID = BuildConfig.API_KEY
-    // Fill the channel name.
     private val CHANNEL = "test"
-    // Fill the temp token generated on Agora Console.
     private val TOKEN = BuildConfig.TOKEN
 
     private var mRtcEngine: RtcEngine ?= null
 
     private val mRtcEventHandler = object : IRtcEngineEventHandler() {
-        // Listen for the remote user joining the channel to get the uid of the user.
         override fun onUserJoined(uid: Int, elapsed: Int) {
             runOnUiThread {
-                // Call setupRemoteVideo to set the remote video view after getting uid from the onUserJoined callback.
                 setupRemoteVideo(uid)
             }
         }
     }
-    // Kotlin
     private val PERMISSION_REQ_ID_RECORD_AUDIO = 22
     private val PERMISSION_REQ_ID_CAMERA = PERMISSION_REQ_ID_RECORD_AUDIO + 1
 
@@ -53,18 +42,15 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    // Kotlin
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // If all the permissions are granted, initialize the RtcEngine object and join a channel.
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO, PERMISSION_REQ_ID_RECORD_AUDIO) && checkSelfPermission(Manifest.permission.CAMERA, PERMISSION_REQ_ID_CAMERA)) {
             initializeAndJoinChannel()
         }
     }
 
-    // Kotlin
     private fun initializeAndJoinChannel() {
         try {
             mRtcEngine = RtcEngine.create(baseContext, APP_ID, mRtcEventHandler)
@@ -72,7 +58,6 @@ class MainActivity : AppCompatActivity() {
 
         }
 
-        // By default, video is disabled, and you need to call enableVideo to start a video stream.
         mRtcEngine!!.enableVideo()
 
         val localContainer = findViewById(R.id.local_video_view_container) as FrameLayout
@@ -85,7 +70,6 @@ class MainActivity : AppCompatActivity() {
         // Join the channel with a token.
         mRtcEngine!!.joinChannel(TOKEN, CHANNEL, "", 0)
     }
-    // Kotlin
     private fun setupRemoteVideo(uid: Int) {
         val remoteContainer = findViewById(R.id.remote_video_view_container) as FrameLayout
 
@@ -96,16 +80,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var videoDisabled: Boolean = false
+    private var muted: Boolean = false
+    fun muteUnmute(view: View) {
+        if (muted) {
+            mRtcEngine!!.muteLocalAudioStream(false)
+            muted = false
+            Toast.makeText(applicationContext, "You have been UNMUTED", Toast.LENGTH_SHORT).show()
+        }
+        else {
+            mRtcEngine!!.muteLocalAudioStream(true)
+            muted = true
+            Toast.makeText(applicationContext, "You have been MUTED", Toast.LENGTH_SHORT).show()
+        }
+
+    }
+
     fun enableDisableVideo(view: View) {
         if (videoDisabled) {
             mRtcEngine!!.enableLocalVideo(true)
             videoDisabled = false
-            Toast.makeText(applicationContext, "Enabled", Toast.LENGTH_SHORT).show()
+            Toast.makeText(applicationContext, "Video Enabled", Toast.LENGTH_SHORT).show()
         }
         else {
             mRtcEngine!!.enableLocalVideo(false)
             videoDisabled = true
-            Toast.makeText(applicationContext, "Disabled", Toast.LENGTH_SHORT).show()
+            Toast.makeText(applicationContext, "Video Disabled", Toast.LENGTH_SHORT).show()
         }
     }
 
